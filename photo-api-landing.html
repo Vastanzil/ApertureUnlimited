@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aperture — Unlimited Photo Storage API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1210;
+    --bg-raised: #131a17;
+    --line: #23302b;
+    --text: #f0ede6;
+    --muted: #8a9691;
+    --safelight: #e8432f;
+    --safelight-dim: #b8341f;
+    --dev-teal: #2fe8c3;
+    --radius: 2px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin:0;
+  }
+  a{color:inherit;}
+  .sprocket-row{
+    display:flex;
+    justify-content:space-between;
+    padding:0 24px;
+    background:#000;
+  }
+  .sprocket-row span{
+    width:10px;height:10px;
+    background:var(--bg);
+    border-radius:2px;
+    margin:6px 3px;
+    flex-shrink:0;
+  }
+  .sprocket-strip{overflow:hidden;}
+  header{
+    max-width:1100px;
+    margin:0 auto;
+    padding:28px 24px 0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:1.15rem;
+    letter-spacing:-0.01em;
+  }
+  .brand-mark{
+    width:14px;height:14px;
+    border-radius:50%;
+    background:var(--safelight);
+    box-shadow:0 0 12px var(--safelight);
+  }
+  nav a{
+    color:var(--muted);
+    text-decoration:none;
+    font-size:0.85rem;
+    margin-left:28px;
+  }
+  nav a:hover{color:var(--text);}
+
+  .hero{
+    max-width:1100px;
+    margin:0 auto;
+    padding:100px 24px 60px;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.78rem;
+    color:var(--dev-teal);
+    border:1px solid #1d3833;
+    background:#0f1a17;
+    padding:6px 12px;
+    border-radius:100px;
+    margin-bottom:28px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--dev-teal);
+  }
+  .hero h1{
+    font-size:clamp(2.4rem, 6vw, 4.4rem);
+    line-height:1.02;
+    max-width:820px;
+    margin:0 auto;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--safelight);
+  }
+  .hero p.sub{
+    max-width:520px;
+    margin:26px auto 40px;
+    color:var(--muted);
+    font-size:1rem;
+  }
+  .cta-row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:16px 30px;
+    border-radius:var(--radius);
+    border:1px solid transparent;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{
+    background:var(--safelight);
+    color:#0d1210;
+    box-shadow:0 0 0 0 rgba(232,67,47,0);
+  }
+  .btn-primary:hover{box-shadow:0 6px 24px -4px rgba(232,67,47,0.55);}
+  .btn-ghost{
+    border-color:var(--line);
+    color:var(--text);
+    background:transparent;
+  }
+  .btn-ghost:hover{border-color:var(--muted);}
+  .price-tag{
+    font-weight:700;
+    font-family:'Space Grotesk',sans-serif;
+  }
+
+  /* Filmstrip */
+  .filmstrip-wrap{
+    margin:70px 0;
+    background:#000;
+    padding:18px 0;
+    overflow:hidden;
+    position:relative;
+  }
+  .filmstrip-wrap::before,.filmstrip-wrap::after{
+    content:"";
+    position:absolute;
+    top:0;bottom:0;
+    width:80px;
+    z-index:2;
+  }
+  .filmstrip-wrap::before{left:0;background:linear-gradient(90deg,#000,transparent);}
+  .filmstrip-wrap::after{right:0;background:linear-gradient(-90deg,#000,transparent);}
+  .filmstrip{
+    display:flex;
+    width:max-content;
+    animation:scrollstrip 34s linear infinite;
+  }
+  @keyframes scrollstrip{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  .frame{
+    width:150px;height:100px;
+    margin:0 6px;
+    border-radius:1px;
+    flex-shrink:0;
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    padding:8px;
+    font-size:0.65rem;
+    color:rgba(255,255,255,0.65);
+  }
+  .frame::after{
+    content:attr(data-n);
+  }
+  .frame:nth-child(6n+1){background:linear-gradient(135deg,#3a2a1f,#1a1210);}
+  .frame:nth-child(6n+2){background:linear-gradient(135deg,#1a2e2a,#0d1a17);}
+  .frame:nth-child(6n+3){background:linear-gradient(135deg,#2a1a2e,#160d1a);}
+  .frame:nth-child(6n+4){background:linear-gradient(135deg,#2e2a1a,#1a170d);}
+  .frame:nth-child(6n+5){background:linear-gradient(135deg,#1a2430,#0d1218);}
+  .frame:nth-child(6n+6){background:linear-gradient(135deg,#301a1a,#180d0d);}
+
+  /* Features */
+  .features{
+    max-width:1100px;
+    margin:0 auto;
+    padding:20px 24px 90px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .feature{
+    background:var(--bg);
+    padding:34px 28px;
+  }
+  .feature .fnum{
+    color:var(--safelight);
+    font-size:0.8rem;
+    display:block;
+    margin-bottom:16px;
+  }
+  .feature h3{
+    font-size:1.15rem;
+    margin-bottom:10px;
+  }
+  .feature p{
+    color:var(--muted);
+    font-size:0.88rem;
+    margin:0;
+  }
+
+  /* Pricing / form section */
+  .pricing{
+    max-width:520px;
+    margin:0 auto;
+    padding:0 24px 120px;
+  }
+  .card{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:36px;
+  }
+  .card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .card-head h2{font-size:1.3rem;}
+  .amount{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:2.2rem;
+    font-weight:700;
+  }
+  .amount sup{font-size:1.1rem;color:var(--muted);}
+  .card-sub{
+    color:var(--muted);
+    font-size:0.85rem;
+    margin-bottom:28px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:0.75rem;
+    color:var(--muted);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .field input{
+    width:100%;
+    background:#0a0f0d;
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:12px 14px;
+    border-radius:var(--radius);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.9rem;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .field input::placeholder{color:#4a5652;}
+  .field input:focus{border-color:var(--dev-teal);}
+  .field input.invalid{border-color:var(--safelight);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field small.err{
+    color:var(--safelight);
+    font-size:0.72rem;
+    display:none;
+    margin-top:5px;
+  }
+  .field.has-error small.err{display:block;}
+
+  .divider{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:24px 0;
+  }
+
+  .submit-btn{
+    width:100%;
+    justify-content:center;
+    font-size:1rem;
+    padding:16px;
+    margin-top:6px;
+  }
+  .lock-note{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    justify-content:center;
+    color:var(--muted);
+    font-size:0.75rem;
+    margin-top:16px;
+  }
+  .lock-note svg{width:12px;height:12px;flex-shrink:0;}
+
+  .success-panel, .processing-panel{
+    display:none;
+    text-align:center;
+    padding:20px 0 4px;
+  }
+  .processing-panel .spinner{
+    width:34px;height:34px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    border:3px solid var(--line);
+    border-top-color:var(--safelight);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .success-panel .check{
+    width:52px;height:52px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:rgba(47,232,195,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .success-panel .check svg{width:24px;height:24px;stroke:var(--dev-teal);}
+  .success-panel h3{font-size:1.15rem;margin-bottom:8px;}
+  .success-panel p{color:var(--muted);font-size:0.88rem;margin:0 0 4px;}
+  .success-panel .key-preview{
+    font-family:'IBM Plex Mono',monospace;
+    background:#0a0f0d;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px 14px;
+    font-size:0.8rem;
+    color:var(--dev-teal);
+    margin-top:18px;
+    letter-spacing:0.02em;
+  }
+
+  footer{
+    max-width:1100px;
+    margin:0 auto;
+    padding:30px 24px 50px;
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:0.78rem;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  @media (max-width:760px){
+    .features{grid-template-columns:1fr;}
+    nav{display:none;}
+    .row2{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .filmstrip{animation:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sprocket-strip">
+  <div class="sprocket-row" id="sprocketTop"></div>
+</div>
+
+<header>
+  <div class="brand"><span class="brand-mark"></span>APERTURE</div>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">API status: accepting new keys</div>
+  <h1>Store every photo you'll<br>ever take. <em>Unlimited.</em></h1>
+  <p class="sub">One API key, no storage caps, no per-GB billing. Upload from any app, any format, any resolution — Aperture keeps it forever.</p>
+  <div class="cta-row">
+    <a href="#pricing" class="btn btn-primary">Grab it — <span class="price-tag">$17.99</span></a>
+    <a href="#features" class="btn btn-ghost">See what's included</a>
+  </div>
+</section>
+
+<div class="filmstrip-wrap">
+  <div class="filmstrip" id="filmstrip"></div>
+</div>
+
+<section class="features" id="features">
+  <div class="feature">
+    <span class="fnum">01 / CAPACITY</span>
+    <h3>No storage ceiling</h3>
+    <p>Push a thousand images or ten million. The limit is your imagination, not your invoice.</p>
+  </div>
+  <div class="feature">
+    <span class="fnum">02 / FORMAT</span>
+    <h3>Any file, as-is</h3>
+    <p>RAW, HEIC, JPEG, TIFF, PNG. Aperture stores originals untouched — no forced compression.</p>
+  </div>
+  <div class="feature">
+    <span class="fnum">03 / DELIVERY</span>
+    <h3>Fast wherever you are</h3>
+    <p>Every upload replicates across a global edge network for instant retrieval, anywhere.</p>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="card">
+
+    <div id="formView">
+      <div class="card-head">
+        <h2>Aperture API Key</h2>
+        <div class="amount">$17.99<sup>/one-time</sup></div>
+      </div>
+      <p class="card-sub">Unlimited storage, lifetime key. Delivered to your inbox right after checkout.</p>
+
+      <form id="checkoutForm" novalidate>
+        <div class="field" id="emailField">
+          <label for="email">Email — your API key goes here</label>
+          <input type="email" id="email" placeholder="you@domain.com" autocomplete="email">
+          <small class="err">Enter a valid email address.</small>
+        </div>
+
+        <hr class="divider">
+
+        <div class="field" id="cardNumField">
+          <label for="cardNumber">Card number</label>
+          <input type="text" id="cardNumber" placeholder="1234 1234 1234 1234" inputmode="numeric" maxlength="19" autocomplete="cc-number">
+          <small class="err">Enter a valid 16-digit card number.</small>
+        </div>
+
+        <div class="row2">
+          <div class="field" id="expField">
+            <label for="cardExp">Expiry</label>
+            <input type="text" id="cardExp" placeholder="MM / YY" inputmode="numeric" maxlength="7" autocomplete="cc-exp">
+            <small class="err">Use MM / YY format.</small>
+          </div>
+          <div class="field" id="cvcField">
+            <label for="cardCvc">CVC</label>
+            <input type="text" id="cardCvc" placeholder="123" inputmode="numeric" maxlength="4" autocomplete="cc-csc">
+            <small class="err">3 or 4 digits.</small>
+          </div>
+        </div>
+
+        <div class="field" id="nameField">
+          <label for="cardName">Name on card</label>
+          <input type="text" id="cardName" placeholder="Jordan Rivera" autocomplete="cc-name">
+          <small class="err">Enter the name on your card.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary submit-btn">Grab it — $17.99</button>
+        <div class="lock-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          Payment details are never stored on this page
+        </div>
+      </form>
+    </div>
+
+    <div class="processing-panel" id="processingView">
+      <div class="spinner"></div>
+      <p style="color:var(--muted); font-size:0.9rem;">Processing payment…</p>
+    </div>
+
+    <div class="success-panel" id="successView">
+      <div class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>You're in.</h3>
+      <p>Your Aperture API key is on its way to</p>
+      <p id="successEmail" style="color:var(--text); font-weight:600;"></p>
+      <div class="key-preview" id="keyPreview"></div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 Aperture Storage</span>
+  <span>Demo checkout — connect a real payment processor before going live</span>
+</footer>
+
+<script>
+  // sprocket holes
+  const sprocketTop = document.getElementById('sprocketTop');
+  for(let i=0;i<40;i++){
+    const s = document.createElement('span');
+    sprocketTop.appendChild(s);
+  }
+
+  // filmstrip frames (duplicated for seamless loop)
+  const filmstrip = document.getElementById('filmstrip');
+  const frameCount = 14;
+  for(let rep=0; rep<2; rep++){
+    for(let i=1;i<=frameCount;i++){
+      const f = document.createElement('div');
+      f.className = 'frame';
+      f.setAttribute('data-n', 'IMG_' + String(i + rep*frameCount).padStart(4,'0'));
+      filmstrip.appendChild(f);
+    }
+  }
+
+  // form handling
+  const form = document.getElementById('checkoutForm');
+  const formView = document.getElementById('formView');
+  const processingView = document.getElementById('processingView');
+  const successView = document.getElementById('successView');
+
+  function setError(fieldId, isError){
+    document.getElementById(fieldId).classList.toggle('has-error', isError);
+  }
+  function setInvalidInput(inputEl, isInvalid){
+    inputEl.classList.toggle('invalid', isInvalid);
+  }
+
+  // light auto-formatting
+  const cardNumber = document.getElementById('cardNumber');
+  cardNumber.addEventListener('input', () => {
+    let v = cardNumber.value.replace(/\D/g,'').slice(0,16);
+    cardNumber.value = v.replace(/(.{4})/g,'$1 ').trim();
+  });
+
+  const cardExp = document.getElementById('cardExp');
+  cardExp.addEventListener('input', () => {
+    let v = cardExp.value.replace(/\D/g,'').slice(0,4);
+    if(v.length >= 3) v = v.slice(0,2) + ' / ' + v.slice(2);
+    cardExp.value = v;
+  });
+
+  const cardCvc = document.getElementById('cardCvc');
+  cardCvc.addEventListener('input', () => {
+    cardCvc.value = cardCvc.value.replace(/\D/g,'').slice(0,4);
+  });
+
+  function generateKey(){
+    const seg = () => Math.random().toString(36).slice(2,7).toUpperCase();
+    return 'APRT-' + seg() + '-' + seg() + '-' + seg();
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let valid = true;
+
+    const email = document.getElementById('email');
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    setError('emailField', !emailOk); setInvalidInput(email, !emailOk);
+    if(!emailOk) valid = false;
+
+    const numDigits = cardNumber.value.replace(/\D/g,'');
+    const numOk = numDigits.length === 16;
+    setError('cardNumField', !numOk); setInvalidInput(cardNumber, !numOk);
+    if(!numOk) valid = false;
+
+    const expMatch = cardExp.value.match(/^(\d{2}) \/ (\d{2})$/);
+    let expOk = false;
+    if(expMatch){
+      const mm = parseInt(expMatch[1],10);
+      expOk = mm >= 1 && mm <= 12;
+    }
+    setError('expField', !expOk); setInvalidInput(cardExp, !expOk);
+    if(!expOk) valid = false;
+
+    const cvcOk = /^\d{3,4}$/.test(cardCvc.value);
+    setError('cvcField', !cvcOk); setInvalidInput(cardCvc, !cvcOk);
+    if(!cvcOk) valid = false;
+
+    const cardName = document.getElementById('cardName');
+    const nameOk = cardName.value.trim().length > 1;
+    setError('nameField', !nameOk); setInvalidInput(cardName, !nameOk);
+    if(!nameOk) valid = false;
+
+    if(!valid) return;
+
+    formView.style.display = 'none';
+    processingView.style.display = 'block';
+
+    setTimeout(() => {
+      processingView.style.display = 'none';
+      successView.style.display = 'block';
+      document.getElementById('successEmail').textContent = email.value.trim();
+      document.getElementById('keyPreview').textContent = generateKey();
+    }, 1600);
+  });
+</script>
+
+</body>
+</html>
